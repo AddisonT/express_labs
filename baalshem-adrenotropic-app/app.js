@@ -10,45 +10,55 @@ app.use(bodyParser.urlencoded({extended: true}));
 // Refactor connection and query code
 var db = require("./models");
 
-app.get('/articles', function(req,res) {
-  console.log("GET /articles");
-  res.send("Set up a response for this route!");
+app.get('/articles', function(req,res) {	
+	db.Article.findAll({include: db.Author})
+    .then(function (articles) {
+      res.render("articles/index", {articlesList: articles});
+    });
 });
 
 app.get('/articles/new', function(req,res) {
-  res.render('articles/new');
+	db.Author.findAll().then(function(author){
+  		res.render('articles/new',{ejsAuthors:author});
+	});
 });
 
 app.post('/articles', function(req,res) {
-  console.log(req.body);
-  res.send("Set up a response for this route!");
+ 	db.Article.create(req.body.article).then(function(){
+  		res.redirect('/articles');
+	});
 });
 
 app.get('/articles/:id', function(req, res) {
-  res.send("Set up a response for this route!");
-  
+	db.Article.find({where: {id: req.params.id},include: db.Author})
+	.then(function(art){
+  		res.render('articles/article', {articleToDisplay: art});
+ 	});
 })
 
 // Fill in these author routes!
 app.get('/authors', function(req, res) {
-	console.log("GET /authors")
-	res.send("Set up a response for this route!");
-
+	db.Author.findAll({include: db.Article})
+	.then(function(authors){
+		res.render("authors/index",{ejsAuthors: authors});
+	});
 });
 
 app.get('/authors/new', function(req, res) {
-	console.log("GET /authors/new")
-	res.send("Set up a response for this route!");
+	res.render('authors/new');
 });
 
 app.post('/authors', function(req, res) {
-	console.log(req.body);
-	res.send("Set up a response for this route!");
+	db.Author.create(req.body.author).then(function(){
+		res.redirect('/authors');
+	});
 });
 
 app.get('/authors/:id', function(req, res) {
-	console.log("GET /authors/:id")
-	res.send("Set up a response for this route!");
+	db.Author.find({where: {id: req.params.id}, include: db.Article})
+	.then(function(author){
+		res.render('authors/author',{ejsAuthor: author});
+	});
 });
 
 app.get('/', function(req,res) {
